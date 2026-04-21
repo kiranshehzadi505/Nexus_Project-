@@ -1,0 +1,165 @@
+<!-- Dashboard Content - This gets loaded into dashboard-container -->
+<div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <!-- User Header -->
+    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold" id="user-name-display"></h2>
+                <p class="text-indigo-200" id="user-role-display"></p>
+            </div>
+            <div class="flex space-x-2">
+                <span class="bg-white/20 px-3 py-1 rounded-full text-sm" id="user-balance">$0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="border-b px-6">
+        <div class="flex space-x-6 overflow-x-auto">
+            <button class="dashboard-tab py-3 px-2 font-semibold text-indigo-600 border-b-2 border-indigo-600" data-tab="profile">Profile</button>
+            <button class="dashboard-tab py-3 px-2 font-semibold text-gray-500" data-tab="meetings">📅 Meetings</button>
+            <button class="dashboard-tab py-3 px-2 font-semibold text-gray-500" data-tab="calls">🎥 Video Calls</button>
+            <button class="dashboard-tab py-3 px-2 font-semibold text-gray-500" data-tab="documents">📄 Documents</button>
+            <button class="dashboard-tab py-3 px-2 font-semibold text-gray-500" data-tab="payments">💰 Payments</button>
+        </div>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="p-6">
+        <!-- Profile Tab -->
+        <div id="profile-panel" class="tab-panel">
+            <div class="bg-gray-50 rounded-xl p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xl font-bold">Profile Information</h3>
+                    <button id="edit-profile-btn" class="text-indigo-600 hover:text-indigo-800">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+                <div id="profile-view">
+                    <div class="space-y-3">
+                        <p><strong>Name:</strong> <span id="profile-name"></span></p>
+                        <p><strong>Email:</strong> <span id="profile-email"></span></p>
+                        <p><strong>Role:</strong> <span id="profile-role"></span></p>
+                        <p><strong>Bio:</strong> <span id="profile-bio"></span></p>
+                        <p><strong>Startup/Investment History:</strong> <span id="profile-history"></span></p>
+                    </div>
+                </div>
+                <div id="profile-edit" class="hidden">
+                    <input type="text" id="edit-name" class="w-full p-2 border rounded mb-2" placeholder="Name">
+                    <textarea id="edit-bio" class="w-full p-2 border rounded mb-2" rows="3" placeholder="Bio"></textarea>
+                    <input type="text" id="edit-history" class="w-full p-2 border rounded mb-2" placeholder="Startup/Investment History">
+                    <button id="save-profile" class="bg-indigo-600 text-white px-4 py-2 rounded">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meetings Tab -->
+        <div id="meetings-panel" class="tab-panel hidden">
+            <div class="grid lg:grid-cols-2 gap-6">
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-bold mb-4">Schedule New Meeting</h3>
+                    <input type="text" id="meeting-title" placeholder="Meeting Title" class="w-full p-2 border rounded mb-3">
+                    <input-type="datetime-local" id="meeting-time" class="w-full p-2 border rounded mb-3">
+                    <select-id="meeting-participant" class="w-full p-2 border rounded mb-3">
+                        <option value="">Select Participant</option>
+                    </select>
+                    <textarea id="meeting-agenda" placeholder="Agenda" rows="2" class="w-full p-2 border rounded mb-3"></textarea>
+                    <button id="schedule-meeting-btn" class="w-full bg-indigo-600 text-white py-2 rounded">Schedule Meeting</button>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-bold mb-4">Upcoming Meetings</h3>
+                    <div id="meetings-list" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Calls Tab -->
+        <div id="calls-panel" class="tab-panel hidden">
+            <div class="grid lg:grid-cols-2 gap-6">
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-bold mb-4">Video Call Room</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Room ID</label>
+                            <input type="text" id="room-id-input" class="w-full p-2 border rounded" placeholder="Enter room ID">
+                        </div>
+                        <div class="flex space-x-3">
+                            <button id="create-room-btn" class="flex-1 bg-green-600 text-white py-2 rounded">Create Room</button>
+                            <button id="join-room-btn" class="flex-1 bg-blue-600 text-white py-2 rounded">Join Room</button>
+                        </div>
+                        <div id="call-controls" class="hidden">
+                            <button id="leave-call-btn" class="w-full bg-red-600 text-white py-2 rounded mt-3">Leave Call</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <video-id="local-video" autoplay muted playsinline class="w-full rounded-lg bg-black"></video>
+                            <p class="text-white text-xs text-center mt-1">You</p>
+                        </div>
+                        <div>
+                            <video-id="remote-video" autoplay playsinline class="w-full rounded-lg bg-black"></video>
+                            <p class="text-white text-xs text-center mt-1">Remote</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents Tab -->
+        <div id="documents-panel" class="tab-panel hidden">
+            <div class="grid lg:grid-cols-2 gap-6">
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-bold mb-4">Upload Document</h3>
+                    <input-type="file" id="doc-file" accept=".pdf,.jpg,.png,.docx" class="w-full mb-3">
+                    <input type="text" id="doc-title" placeholder="Document Title" class="w-full p-2 border rounded mb-3">
+                    <button id="upload-doc-btn" class="w-full bg-purple-600 text-white py-2 rounded">Upload</button>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-bold mb-4">My Documents</h3>
+                    <div id="documents-list" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Tab -->
+        <div id="payments-panel" class="tab-panel hidden">
+            <div class="grid lg:grid-cols-2 gap-6">
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-bold mb-4">Make Payment</h3>
+                    <input type="number" id="payment-amount" placeholder="Amount (USD)" class="w-full p-2 border rounded mb-3">
+                    <select-id="payment-type" class="w-full p-2 border rounded mb-3">
+                        <option value="deposit">Deposit Funds</option>
+                        <option value="transfer">Transfer to User</option>
+                    </select>
+                    <div id="transfer-user-field" class="hidden">
+                        <select-id="transfer-to" class="w-full p-2 border rounded mb-3">
+                            <option value="">Select User</option>
+                        </select>
+                    </div>
+                    <button id="process-payment-btn" class="w-full bg-green-600 text-white py-2 rounded">Process Payment</button>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-bold mb-4">Transaction History</h3>
+                    <div id="transactions-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- E-Signature Modal -->
+<div id="sign-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl p-6 w-96">
+        <h3 class="text-xl font-bold mb-4">E-Sign Document</h3>
+        <canvas id="signature-canvas" width="350" height="150" class="border rounded mb-3"></canvas>
+        <div class="flex space-x-2 mb-3">
+            <button id="clear-signature" class="bg-gray-500 text-white px-3 py-1 rounded text-sm">Clear</button>
+        </div>
+        <div class="flex space-x-3">
+            <button id="confirm-signature" class="flex-1 bg-indigo-600 text-white py-2 rounded">Sign Document</button>
+            <button id="close-sign-modal" class="flex-1 bg-gray-300 py-2 rounded">Cancel</button>
+        </div>
+    </div>
+</div>

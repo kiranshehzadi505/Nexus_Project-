@@ -1,103 +1,154 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const supabase = require('../utils/supabase');
+// Supabase Configuration
+const SUPABASE_URL = 'https://your-project.supabase.co'; // REPLACE WITH YOUR URL
+const SUPABASE_ANON_KEY = 'your-anon-key'; // REPLACE WITH YOUR KEY
 
-const router = express.Router();
+let supabase;
+let currentUser = null;
 
-// Register
-router.post('/register', async (req, res) => {
+// Initialize Supabase
+function initSupabase() {
+    if (typeof supabaseJs !== 'undefined') {
+        supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+        console.error('Supabase not loaded');
+    }
+}
+
+// Register User
+async function registerUser(name, email, password, role, bio) {
     try {
-        const { name, email, password, role, bio } = req.body;
+        // Sign up with Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: { name: name, role: role, bio: bio }
+            }
+        });
         
-        // Check if user exists
-        const { data: existing } = await supabase
-            .from('profiles')
-            .select('email')
-            .eq('email', email)
-            .single();
-            
-        if (existing) {
-            return res.status(400).json({ success: false, message: 'User already exists' });
-        }
+        if (authError) throw authError;
         
-        // Hash password (simplified - in production use Supabase Auth)
-        const hashedPassword = await bcrypt.hash(password, 10);
-        
-        // Create user
-        const { data: user, error } = await supabase
+        // Store additional profile data
+        const { error: profileError } = await supabase
             .from('profiles')
             .insert([{
-                name,
-                email,
-                role,
-                bio: bio || '',
+                id: authData.user.id,
+                name: name,
+                email: email,
+                role: role,
+                bio: bio,
                 balance: 0,
                 created_at: new Date()
-            }])
-            .select()
-            .single();
+            }]);
+            
+        if (profileError) throw profileError;
+        
+        return { success: true, user: authData.user };
+    } catch (error) {
+        console.error('Registration error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Login User
+async function loginUser(email, password, role) {
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+        
+        if (error) throw error;
+        
+        // Verify role matches
+        const userRole = data.user.user_metadata?.role;
+        if (userRole !== role) {
+            throw new Error(`Invalid role. You are registered as ${userRole}`);
+        }
+        
+        currentUser = {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.user_metadata?.name,
+            role: userRole
+        };
+        
+        localStorage.setItem('nexus_user', JSON.stringify(currentUser));
+        
+        return { success: true, user: currentUser };
+    } catch (error) {
+        console.error('Login error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Logout
+async function logoutUser() {
+    await supabase.auth.signOut();
+    localStorage.removeItem('nexus_user');
+    currentUser = null;
+    return { success: true };
+}
+
+// Get Current User
+function getCurrentUser() {
+    if (currentUser) return currentUser;
+    const stored = localStorage.getItem('nexus_user');
+    if (stored) {
+        currentUser = JSON.parse(stored);
+        return currentUser;
+    }
+    return null;
+}
+
+// Update Profile
+async function updateProfile(updates) {
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update(updates)
+            .eq('id', currentUser.id);
             
         if (error) throw error;
         
-        // Generate JWT
-        const token = jwt.sign(
-            { userId: user.id, email: user.email, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '7d' }
-        );
-        
-        res.json({
-            success: true,
-            message: 'Registration successful',
-            token,
-            user: { id: user.id, name: user.name, email: user.email, role: user.role }
-        });
-        
+        return { success: true };
     } catch (error) {
-        console.error('Register error:', error);
-        res.status(500).json({ success: false, message: 'Registration failed' });
+        return { success: false, error: error.message };
     }
-});
+}
 
-// Login
-router.post('/login', async (req, res) => {
+// Get User Profile
+async function getUserProfile(userId = null) {
+    const id = userId || currentUser?.id;
+    if (!id) return null;
+    
     try {
-        const { email, password, role } = req.body;
-        
-        const { data: user, error } = await supabase
+        const { data, error } = await supabase
             .from('profiles')
             .select('*')
-            .eq('email', email)
+            .eq('id', id)
             .single();
             
-        if (error || !user) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
-        }
-        
-        if (user.role !== role) {
-            return res.status(401).json({ success: false, message: `Invalid role. You are registered as ${user.role}` });
-        }
-        
-        // For demo - accept any password
-        // In production: await bcrypt.compare(password, user.password)
-        
-        const token = jwt.sign(
-            { userId: user.id, email: user.email, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '7d' }
-        );
-        
-        res.json({
-            success: true,
-            message: 'Login successful',
-            token,
-            user: { id: user.id, name: user.name, email: user.email, role: user.role }
-        });
-        
+        if (error) throw error;
+        return data;
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Login failed' });
+        console.error('Error fetching profile:', error);
+        return null;
     }
-});
+}
 
-module.exports = router;
+// Get All Users (for meetings/payments)
+async function getAllUsers() {
+    try {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('id, name, email, role')
+            .neq('id', currentUser.id);
+            
+        if (error) throw error;
+        return data;
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        return [];
+    }
+}

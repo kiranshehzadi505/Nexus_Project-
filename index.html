@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus | Premium Investor-Entrepreneur Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        /* Animated Gradient Background */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        body {
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        /* Glassmorphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* Video Container */
+        .video-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background: #1a1a2e;
+            border-radius: 20px;
+            padding: 20px;
+        }
+        
+        video {
+            width: 100%;
+            border-radius: 16px;
+            background: #000;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        /* Signature Canvas */
+        #signature-canvas {
+            border: 2px solid #4f46e5;
+            border-radius: 12px;
+            background: white;
+            cursor: crosshair;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 10px;
+        }
+        
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(79, 70, 229, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #4f46e5;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="glass px-6 py-4 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-handshake text-white text-xl"></i>
+                </div>
+                <span class="text-2xl font-bold text-white">Nexus</span>
+                <span class="text-sm text-gray-300 hidden md:block">Premium Collaboration Platform</span>
+            </div>
+            
+            <div id="nav-buttons" class="flex space-x-3">
+                <button id="home-btn" class="px-4 py-2 text-white hover:text-indigo-300 transition">Home</button>
+                <button id="dashboard-btn" class="hidden px-4 py-2 text-white hover:text-indigo-300 transition">Dashboard</button>
+                <button id="signin-btn" class="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition">Sign In</button>
+                <button id="logout-btn" class="hidden px-5 py-2 bg-red-500/20 text-red-300 rounded-xl hover:bg-red-500/30 transition">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-12">
+        
+        <!-- Hero Section with Animation -->
+        <div id="hero-section" class="text-center mb-16">
+            <div class="float">
+                <h1 class="text-6xl md:text-7xl font-bold text-white mb-6">
+                    Connect. <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Collaborate.</span> Grow.
+                </h1>
+            </div>
+            <p class="text-xl text-gray-300 mb-12 max-w-2xl mx-auto">
+                The premier platform connecting visionary investors with groundbreaking entrepreneurs
+            </p>
+            
+            <div class="flex justify-center space-x-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-white">500+</div>
+                    <div class="text-gray-400">Investors</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-white">1,000+</div>
+                    <div class="text-gray-400">Startups</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-white">$50M+</div>
+                    <div class="text-gray-400">Funded</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Selection Cards -->
+        <div id="role-section" class="max-w-5xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Investor Card -->
+                <div class="glass-card p-8 text-center cursor-pointer group" onclick="selectRole('investor')">
+                    <div class="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-chart-line text-4xl text-white"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Investor</h2>
+                    <p class="text-gray-600 mb-6">Discover high-potential startups, schedule meetings, and make strategic investments</p>
+                    <button class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition">Continue as Investor →</button>
+                </div>
+
+                <!-- Entrepreneur Card -->
+                <div class="glass-card p-8 text-center cursor-pointer group" onclick="selectRole('entrepreneur')">
+                    <div class="w-24 h-24 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-rocket text-4xl text-white"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-3">Entrepreneur</h2>
+                    <p class="text-gray-600 mb-6">Showcase your innovation, connect with investors, and secure funding for growth</p>
+                    <button class="w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition">Continue as Entrepreneur →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Modal -->
+        <div id="auth-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div class="glass-card w-full max-w-md p-8 mx-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="auth-title" class="text-2xl font-bold text-gray-800">Sign In</h3>
+                    <button onclick="closeAuthModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+                </div>
+                
+                <div id="role-indicator" class="mb-4 p-3 rounded-xl text-center"></div>
+                
+                <div id="login-fields">
+                    <input type="email" id="login-email" placeholder="Email Address" class="w-full p-3 border rounded-xl mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="password" id="login-password" placeholder="Password" class="w-full p-3 border rounded-xl mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div class="text-right mb-4">
+                        <a href="#" onclick="showForgotPassword()" class="text-sm text-indigo-600 hover:underline">Forgot Password?</a>
+                    </div>
+                    <button onclick="handleLogin()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition">Sign In</button>
+                </div>
+                
+                <div id="register-fields" class="hidden">
+                    <input type="text" id="reg-name" placeholder="Full Name" class="w-full p-3 border rounded-xl mb-3">
+                    <input type="email" id="reg-email" placeholder="Email Address" class="w-full p-3 border rounded-xl mb-3">
+                    <input type="password" id="reg-password" placeholder="Password (min 6 chars)" class="w-full p-3 border rounded-xl mb-3">
+                    <textarea id="reg-bio" placeholder="Tell us about yourself / your startup" rows="3" class="w-full p-3 border rounded-xl mb-4"></textarea>
+                    <button onclick="handleRegister()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition">Create Account</button>
+                </div>
+                
+                <div id="forgot-fields" class="hidden">
+                    <p class="text-gray-600 mb-4">Enter your email to receive password reset instructions</p>
+                    <input type="email" id="reset-email" placeholder="Email Address" class="w-full p-3 border rounded-xl mb-3">
+                    <button onclick="sendResetLink()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold">Send Reset Link</button>
+                    <button onclick="showLogin()" class="w-full mt-3 text-gray-600 hover:text-indigo-600">Back to Sign In</button>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p id="toggle-auth" class="text-gray-600">
+                        Don't have an account? 
+                        <a href="#" onclick="toggleAuthMode()" class="text-indigo-600 font-semibold">Sign Up</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Container -->
+        <div id="dashboard-container" class="hidden"></div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden glass-card px-6 py-3"></div>
+
+    <script>
+        // Global Variables
+        let currentUser = null;
+        let selectedRole = null;
+        let localStream = null;
+        let peerConnection = null;
+        let socket = null;
+        let currentRoomId = null;
+        let signatureCanvas = null;
+        let signatureCtx = null;
+        let documents = JSON.parse(localStorage.getItem('nexus_documents') || '[]');
+        let meetings = JSON.parse(localStorage.getItem('nexus_meetings') || '[]');
+        let transactions = JSON.parse(localStorage.getItem('nexus_transactions') || '[]');
+
+        // Show Toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i> ${message}`;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // Select Role
+        function selectRole(role) {
+            selectedRole = role;
+            document.getElementById('auth-modal').classList.remove('hidden');
+            const indicator = document.getElementById('role-indicator');
+            indicator.className = `mb-4 p-3 rounded-xl text-center ${role === 'investor' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`;
+            indicator.innerHTML = `<i class="fas fa-${role === 'investor' ? 'chart-line' : 'rocket'} mr-2"></i> Signing in as <strong>${role.toUpperCase()}</strong>`;
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            selectedRole = null;
+        }
+
+        function toggleAuthMode() {
+            const loginFields = document.getElementById('login-fields');
+            const registerFields = document.getElementById('register-fields');
+            const toggleText = document.getElementById('toggle-auth');
+            
+            if (loginFields.classList.contains('hidden')) {
+                loginFields.classList.remove('hidden');
+                registerFields.classList.add('hidden');
+                toggleText.innerHTML = `Don't have an account? <a href="#" onclick="toggleAuthMode()" class="text-indigo-600 font-semibold">Sign Up</a>`;
+                document.getElementById('auth-title').textContent = 'Sign In';
+            } else {
+                loginFields.classList.add('hidden');
+                registerFields.classList.remove('hidden');
+                toggleText.innerHTML = `Already have an account? <a href="#" onclick="toggleAuthMode()" class="text-indigo-600 font-semibold">Sign In</a>`;
+                document.getElementById('auth-title').textContent = 'Create Account';
+            }
+        }
+
+        function showForgotPassword() {
+            document.getElementById('login-fields').classList.add('hidden');
+            document.getElementById('forgot-fields').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('forgot-fields').classList.add('hidden');
+            document.getElementById('login-fields').classList.remove('hidden');
+        }
+
+        function sendResetLink() {
+            const email = document.getElementById('reset-email').value;
+            if (email) {
+                showToast(`Password reset link sent to ${email}`, 'success');
+                showLogin();
+            } else {
+                showToast('Please enter your email', 'error');
+            }
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                showToast('Please fill all fields', 'error');
+                return;
+            }
+            
+            currentUser = {
+                id: Date.now().toString(),
+                name: email.split('@')[0],
+                email: email,
+                role: selectedRole
+            };
+            
+            localStorage.setItem('nexus_user', JSON.stringify(currentUser));
+            showToast(`Welcome back, ${currentUser.name}!`, 'success');
+            closeAuthModal();
+            loadDashboard();
+        }
+
+        function handleRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const bio = document.getElementById('reg-bio').value;
+            
+            if (!name || !email || !password) {
+                showToast('Please fill all fields', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showToast('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            currentUser = {
+                id: Date.now().toString(),
+                name: name,
+                email: email,
+                role: selectedRole,
+                bio: bio
+            };
+            
+            localStorage.setItem('nexus_user', JSON.stringify(currentUser));
+            showToast('Account created successfully!', 'success');
+            closeAuthModal();
+            loadDashboard();
+        }
+
+        // Initialize Socket.IO for Video Calls
+        function initSocket() {
+            socket = io('http://localhost:5000', {
+                transports: ['websocket', 'polling']
+            });
+            
+            socket.on('connect', () => {
+                console.log('Connected to video server');
+            });
+            
+            socket.on('user-joined', (data) => {
+                showToast('A user joined the call', 'info');
+                createOffer();
+            });
+            
+            socket.on('user-left', () => {
+                showToast('A user left the call', 'info');
+                if (document.getElementById('remote-video')) {
+                    document.getElementById('remote-video').srcObject = null;
+                }
+            });
+            
+            socket.on('video-offer', async (data) => {
+                await handleOffer(data);
+            });
+            
+            socket.on('video-answer', async (data) => {
+                await handleAnswer(data);
+            });
+            
+            socket.on('ice-candidate', async (data) => {
+                if (peerConnection) {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                }
+            });
+        }
+
+        // Video Call Functions
+        async function createRoom() {
+            currentRoomId = Math.random().toString(36).substring(2, 10);
+            document.getElementById('room-id-display').value = currentRoomId;
+            await startLocalStream();
+            socket.emit('join-video-room', { roomId: currentRoomId, userId: currentUser.id });
+            showToast(`Room created: ${currentRoomId}`, 'success');
+        }
+
+        async function joinRoom() {
+            const roomId = document.getElementById('room-id-input').value;
+            if (!roomId) {
+                showToast('Please enter a room ID', 'error');
+                return;
+            }
+            currentRoomId = roomId;
+            await startLocalStream();
+            socket.emit('join-video-room', { roomId: currentRoomId, userId: currentUser.id });
+            showToast(`Joined room: ${currentRoomId}`, 'success');
+        }
+
+        async function startLocalStream() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const localVideo = document.getElementById('local-video');
+                if (localVideo) localVideo.srcObject = localStream;
+                
+                peerConnection = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                });
+                
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+                
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        socket.emit('ice-candidate', { candidate: event.candidate, roomId: currentRoomId });
+                    }
+                };
+                
+                peerConnection.ontrack = (event) => {
+                    const remoteVideo = document.getElementById('remote-video');
+                    if (remoteVideo) remoteVideo.srcObject = event.streams[0];
+                };
+            } catch (error) {
+                console.error('Error accessing media devices:', error);
+                showToast('Could not access camera/microphone', 'error');
+            }
+        }
+
+        async function createOffer() {
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            socket.emit('video-offer', { offer: offer, roomId: currentRoomId });
+        }
+
+        async function handleOffer(data) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            socket.emit('video-answer', { answer: answer, roomId: currentRoomId });
+        }
+
+        async function handleAnswer(data) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        }
+
+        function leaveCall() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (peerConnection) {
+                peerConnection.close();
+            }
+            if (currentRoomId) {
+                socket.emit('leave-video-room', { roomId: currentRoomId });
+            }
+            const localVideo = document.getElementById('local-video');
+            const remoteVideo = document.getElementById('remote-video');
+            if (localVideo) localVideo.srcObject = null;
+            if (remoteVideo) remoteVideo.srcObject = null;
+            showToast('Left the call', 'info');
+        }
+
+        function toggleAudio() {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    showToast(audioTrack.enabled ? 'Microphone on' : 'Microphone off', 'info');
+                }
+            }
+        }
+
+        function toggleVideo() {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    showToast(videoTrack.enabled ? 'Camera on' : 'Camera off', 'info');
+                }
+            }
+        }
+
+        // Document Functions
+        function initSignatureCanvas() {
+            const canvas = document.getElementById('signature-canvas');
+            if (canvas) {
+                signatureCanvas = canvas;
+                signatureCtx = canvas.getContext('2d');
+                signatureCtx.strokeStyle = '#4f46e5';
+                signatureCtx.lineWidth = 2;
+                
+                let drawing = false;
+                canvas.addEventListener('mousedown', (e) => {
+                    drawing = true;
+                    const rect = canvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    signatureCtx.beginPath();
+                    signatureCtx.moveTo(x, y);
+                });
+                
+                canvas.addEventListener('mousemove', (e) => {
+                    if (drawing) {
+                        const rect = canvas.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        signatureCtx.lineTo(x, y);
+                        signatureCtx.stroke();
+                    }
+                });
+                
+                canvas.addEventListener('mouseup', () => {
+                    drawing = false;
+                    signatureCtx.beginPath();
+                });
+            }
+        }
+
+        function clearSignature() {
+            if (signatureCtx) {
+                signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+                signatureCtx.fillStyle = '#fff';
+                signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            }
+        }
+
+        function uploadDocument() {
+            const file = document.getElementById('doc-file').files[0];
+            const title = document.getElementById('doc-title').value;
+            
+            if (!file) {
+                showToast('Please select a file', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const doc = {
+                    id: Date.now(),
+                    title: title || file.name,
+                    fileName: file.name,
+                    fileType: file.type,
+                    fileData: e.target.result,
+                    uploadedBy: currentUser.id,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+                documents.push(doc);
+                localStorage.setItem('nexus_documents', JSON.stringify(documents));
+                showToast('Document uploaded successfully!', 'success');
+                renderDocuments();
+                document.getElementById('doc-file').value = '';
+                document.getElementById('doc-title').value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderDocuments() {
+            const container = document.getElementById('documents-list');
+            if (!container) return;
+            
+            if (documents.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-folder-open text-4xl mb-3"></i><p>No documents uploaded yet</p></div>';
+                return;
+            }
+            
+            container.innerHTML = documents.map(doc => `
+                <div class="glass-card p-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-file-${doc.fileType.includes('pdf') ? 'pdf' : 'image'} text-2xl text-indigo-500"></i>
+                            <div>
+                                <h4 class="font-semibold">${doc.title}</h4>
+                                <p class="text-xs text-gray-500">${new Date(doc.createdAt).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full ${doc.status === 'signed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${doc.status}</span>
+                    </div>
+                    <div class="mt-3 flex space-x-3">
+                        <button onclick="viewDocument(${doc.id})" class="text-indigo-600 text-sm hover:underline">View</button>
+                        ${doc.status !== 'signed' ? `<button onclick="showSignatureModal(${doc.id})" class="text-green-600 text-sm hover:underline">Sign</button>` : '<span class="text-green-600 text-sm"><i class="fas fa-check-circle"></i> Signed</span>'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function viewDocument(id) {
+            const doc = documents.find(d => d.id === id);
+            if (doc && doc.fileData) {
+                const win = window.open();
+                win.document.write(`<iframe src="${doc.fileData}" width="100%" height="100%" style="border:none"></iframe>`);
+            }
+        }
+
+        let currentSignDocId = null;
+        function showSignatureModal(docId) {
+            currentSignDocId = docId;
+            document.getElementById('signature-modal').classList.remove('hidden');
+            clearSignature();
+        }
+
+        function signDocument() {
+            if (currentSignDocId) {
+                const signatureData = signatureCanvas.toDataURL();
+                const docIndex = documents.findIndex(d => d.id === currentSignDocId);
+                if (docIndex !== -1) {
+                    documents[docIndex].status = 'signed';
+                    documents[docIndex].signature = signatureData;
+                    documents[docIndex].signedAt = new Date().toISOString();
+                    localStorage.setItem('nexus_documents', JSON.stringify(documents));
+                    showToast('Document signed successfully!', 'success');
+                    renderDocuments();
+                    document.getElementById('signature-modal').classList.add('hidden');
+                    currentSignDocId = null;
+                }
+            }
+        }
+
+        // Meeting Functions
+        function scheduleMeeting() {
+            const title = document.getElementById('meeting-title').value;
+            const date = document.getElementById('meeting-date').value;
+            const time = document.getElementById('meeting-time').value;
+            const participant = document.getElementById('meeting-participant').value;
+            
+            if (!title || !date || !time) {
+                showToast('Please fill all fields', 'error');
+                return;
+            }
+            
+            const meeting = {
+                id: Date.now(),
+                title: title,
+                dateTime: `${date}T${time}`,
+                organizer: currentUser.name,
+                participant: participant || 'Partner',
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            
+            meetings.push(meeting);
+            localStorage.setItem('nexus_meetings', JSON.stringify(meetings));
+            showToast('Meeting scheduled successfully!', 'success');
+            renderMeetings();
+            document.getElementById('meeting-title').value = '';
+            document.getElementById('meeting-date').value = '';
+            document.getElementById('meeting-time').value = '';
+        }
+
+        function renderMeetings() {
+            const container = document.getElementById('meetings-list');
+            if (!container) return;
+            
+            const userMeetings = meetings.filter(m => m.organizer === currentUser.name || m.participant === currentUser.name);
+            
+            if (userMeetings.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-calendar-alt text-4xl mb-3"></i><p>No meetings scheduled</p></div>';
+                return;
+            }
+            
+            container.innerHTML = userMeetings.map(meeting => `
+                <div class="glass-card p-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold">${meeting.title}</h4>
+                            <p class="text-sm text-gray-600">${new Date(meeting.dateTime).toLocaleString()}</p>
+                            <p class="text-xs text-gray-500">With: ${meeting.organizer === currentUser.name ? meeting.participant : meeting.organizer}</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full ${meeting.status === 'accepted' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${meeting.status}</span>
+                    </div>
+                    ${meeting.status === 'pending' && meeting.participant !== currentUser.name ? `
+                        <div class="mt-3 flex space-x-2">
+                            <button onclick="updateMeetingStatus(${meeting.id}, 'accepted')" class="px-3 py-1 bg-green-500 text-white rounded-lg text-sm">Accept</button>
+                            <button onclick="updateMeetingStatus(${meeting.id}, 'rejected')" class="px-3 py-1 bg-red-500 text-white rounded-lg text-sm">Reject</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function updateMeetingStatus(id, status) {
+            const meeting = meetings.find(m => m.id === id);
+            if (meeting) {
+                meeting.status = status;
+                localStorage.setItem('nexus_meetings', JSON.stringify(meetings));
+                showToast(`Meeting ${status}`, 'success');
+                renderMeetings();
+            }
+        }
+
+        // Payment Functions
+        function processPayment() {
+            const amount = parseFloat(document.getElementById('payment-amount').value);
+            const type = document.getElementById('payment-type').value;
+            
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid amount', 'error');
+                return;
+            }
+            
+            const transaction = {
+                id: Date.now(),
+                amount: amount,
+                type: type,
+                status: 'completed',
+                date: new Date().toISOString()
+            };
+            
+            transactions.push(transaction);
+            localStorage.setItem('nexus_transactions', JSON.stringify(transactions));
+            showToast(`${type === 'deposit' ? 'Deposited' : 'Transferred'} $${amount} successfully!`, 'success');
+            renderTransactions();
+            document.getElementById('payment-amount').value = '';
+        }
+
+        function renderTransactions() {
+            const container = document.getElementById('transactions-list');
+            if (!container) return;
+            
+            if (transactions.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500"><i class="fas fa-receipt text-4xl mb-3"></i><p>No transactions yet</p></div>';
+                return;
+            }
+            
+            container.innerHTML = transactions.map(tx => `
+                <div class="flex justify-between items-center p-3 border-b">
+                    <div>
+                        <p class="font-semibold">${tx.type.toUpperCase()}</p>
+                        <p class="text-xs text-gray-500">${new Date(tx.date).toLocaleDateString()}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold ${tx.type === 'deposit' ? 'text-green-600' : 'text-red-600'}">${tx.type === 'deposit' ? '+' : '-'}$${tx.amount}</p>
+                        <p class="text-xs text-green-600">${tx.status}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load Dashboard
+        function loadDashboard() {
+            if (!currentUser) {
+                const saved = localStorage.getItem('nexus_user');
+                if (saved) currentUser = JSON.parse(saved);
+                else return;
+            }
+            
+            document.getElementById('hero-section').classList.add('hidden');
+            document.getElementById('role-section').classList.add('hidden');
+            document.getElementById('dashboard-container').classList.remove('hidden');
+            document.getElementById('signin-btn').classList.add('hidden');
+            document.getElementById('dashboard-btn').classList.remove('hidden');
+            document.getElementById('logout-btn').classList.remove('hidden');
+            
+            initSocket();
+            initSignatureCanvas();
+            
+            document.getElementById('dashboard-container').innerHTML = `
+                <div class="glass-card p-8">
+                    <!-- Welcome Header -->
+                    <div class="text-center mb-8">
+                        <div class="w-24 h-24 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-user-circle text-5xl text-white"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800">Welcome, ${currentUser.name}!</h2>
+                        <p class="text-gray-600 mt-2">You are logged in as <span class="font-semibold text-indigo-600">${currentUser.role.toUpperCase()}</span></p>
+                    </div>
+                    
+                    <!-- Tab Navigation -->
+                    <div class="flex flex-wrap gap-2 mb-8 border-b border-gray-200 pb-2">
+                        <button onclick="showTab('profile')" id="tab-profile" class="tab-btn px-6 py-2 rounded-lg font-semibold bg-indigo-600 text-white">Profile</button>
+                        <button onclick="showTab('meetings')" id="tab-meetings" class="tab-btn px-6 py-2 rounded-lg font-semibold text-gray-600 hover:bg-gray-100">📅 Meetings</button>
+                        <button onclick="showTab('video')" id="tab-video" class="tab-btn px-6 py-2 rounded-lg font-semibold text-gray-600 hover:bg-gray-100">🎥 Video Calls</button>
+                        <button onclick="showTab('documents')" id="tab-documents" class="tab-btn px-6 py-2 rounded-lg font-semibold text-gray-600 hover:bg-gray-100">📄 Documents</button>
+                        <button onclick="showTab('payments')" id="tab-payments" class="tab-btn px-6 py-2 rounded-lg font-semibold text-gray-600 hover:bg-gray-100">💰 Payments</button>
+                    </div>
+                    
+                    <!-- Tab Content -->
+                    <div id="tab-content"></div>
+                </div>
+                
+                <!-- Signature Modal -->
+                <div id="signature-modal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+                    <div class="glass-card p-6 max-w-md w-full mx-4">
+                        <h3 class="text-xl font-bold mb-4">Sign Document</h3>
+                        <canvas id="signature-canvas" width="400" height="200" class="border-2 border-indigo-500 rounded-lg w-full"></canvas>
+                        <div class="flex space-x-3 mt-4">
+                            <button onclick="clearSignature()" class="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg">Clear</button>
+                            <button onclick="signDocument()" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg">Sign</button>
+                            <button onclick="document.getElementById('signature-modal').classList.add('hidden')" class="flex-1 px-4 py-2 bg-gray-300 rounded-lg">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            showTab('profile');
+        }
+
+        function showTab(tabName) {
+            const container = document.getElementById('tab-content');
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('text-gray-600');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('bg-indigo-600', 'text-white');
+            document.getElementById(`tab-${tabName}`).classList.remove('text-gray-600');
+            
+            if (tabName === 'profile') {
+                container.innerHTML = `
+                    <div class="glass-card p-6">
+                        <h3 class="text-xl font-bold mb-4">Profile Information</h3>
+                        <div class="space-y-3">
+                            <p><strong>Name:</strong> ${currentUser.name}</p>
+                            <p><strong>Email:</strong> ${currentUser.email}</p>
+                            <p><strong>Role:</strong> <span class="px-2 py-1 rounded-full text-sm ${currentUser.role === 'investor' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">${currentUser.role}</span></p>
+                            <p><strong>Bio:</strong> ${currentUser.bio || 'Not provided'}</p>
+                            <p><strong>Member Since:</strong> ${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+                `;
+            } else if (tabName === 'meetings') {
+                container.innerHTML = `
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-bold mb-4">Schedule Meeting</h3>
+                            <input type="text" id="meeting-title" placeholder="Meeting Title" class="w-full p-3 border rounded-xl mb-3">
+                            <input type="date" id="meeting-date" class="w-full p-3 border rounded-xl mb-3">
+                            <input type="time" id="meeting-time" class="w-full p-3 border rounded-xl mb-3">
+                            <input type="text" id="meeting-participant" placeholder="Participant Name (optional)" class="w-full p-3 border rounded-xl mb-4">
+                            <button onclick="scheduleMeeting()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-semibold">Schedule Meeting</button>
+                        </div>
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-bold mb-4">Upcoming Meetings</h3>
+                            <div id="meetings-list" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                `;
+                renderMeetings();
+            } else if (tabName === 'video') {
+                container.innerHTML = `
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-bold mb-4">Video Call Room</h3>
+                            <div class="space-y-4">
+                                <input type="text" id="room-id-input" placeholder="Enter Room ID" class="w-full p-3 border rounded-xl">
+                                <div class="flex space-x-3">
+                                    <button onclick="createRoom()" class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-semibold">Create Room</button>
+                                    <button onclick="joinRoom()" class="flex-1 bg-gradient-to-r from-blue-500 to-cyan-600 text-white py-3 rounded-xl font-semibold">Join Room</button>
+                                </div>
+                                <div class="mt-4 p-3 bg-gray-100 rounded-xl">
+                                    <p class="text-sm text-gray-600">Your Room ID: <strong id="room-id-display">-</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-card p-6">
+                            <div class="video-grid">
+                                <div>
+                                    <video id="local-video" autoplay muted playsinline class="w-full rounded-xl"></video>
+                                    <p class="text-center text-sm text-gray-600 mt-2">You</p>
+                                </div>
+                                <div>
+                                    <video id="remote-video" autoplay playsinline class="w-full rounded-xl"></video>
+                                    <p class="text-center text-sm text-gray-600 mt-2">Participant</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-center space-x-3 mt-4">
+                                <button onclick="toggleAudio()" class="px-4 py-2 bg-gray-600 text-white rounded-lg"><i class="fas fa-microphone"></i></button>
+                                <button onclick="toggleVideo()" class="px-4 py-2 bg-gray-600 text-white rounded-lg"><i class="fas fa-video"></i></button>
+                                <button onclick="leaveCall()" class="px-4 py-2 bg-red-600 text-white rounded-lg"><i class="fas fa-phone-slash"></i> Leave</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (tabName === 'documents') {
+                container.innerHTML = `
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-bold mb-4">Upload Document</h3>
+                            <input type="file" id="doc-file" accept=".pdf,.jpg,.png" class="w-full mb-3">
+                            <input type="text" id="doc-title" placeholder="Document Title" class="w-full p-3 border rounded-xl mb-4">
+                            <button onclick="uploadDocument()" class="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white py-3 rounded-xl font-semibold">Upload</button>
+                        </div>
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-bold mb-4">My Documents</h3>
+                            <div id="documents-list" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                `;
+                renderDocuments();
+            } else if (tabName === 'payments') {
+                container.innerHTML = `
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-bold mb-4">Payment Center</h3>
+                            <input type="number" id="payment-amount" placeholder="Amount (USD)" class="w-full p-3 border rounded-xl mb-3">
+                            <select id="payment-type" class="w-full p-3 border rounded-xl mb-4">
+                                <option value="deposit">Deposit Funds</option>
+                                <option value="transfer">Transfer to User</option>
+                            </select>
+                            <button onclick="processPayment()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-semibold">Process Payment</button>
+                        </div>
+                        <div class="glass-card p-6">
+                            <h3 class="text-xl font-bold mb-4">Transaction History</h3>
+                            <div id="transactions-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                `;
+                renderTransactions();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('nexus_user');
+            currentUser = null;
+            location.reload();
+        }
+
+        // Event Listeners
+        document.getElementById('home-btn').onclick = () => location.reload();
+        document.getElementById('dashboard-btn').onclick = () => loadDashboard();
+        document.getElementById('signin-btn').onclick = () => selectRole('investor');
+        document.getElementById('logout-btn').onclick = () => logout();
+        
+        // Check for existing session
+        const savedUser = localStorage.getItem('nexus_user');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            loadDashboard();
+        }
+    </script>
+</body>
+</html>
